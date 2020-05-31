@@ -29,7 +29,7 @@ stages:
         s3BucketName: 'ambryhill-cf'
         s3ObjectKey: 'prod-2020-05-27.json'
         templateParametersSource: 'inline'
-        templateParameters: |
+        templateParameters: >
           [
           	{
           		'ParameterKey':'AZs',
@@ -55,7 +55,7 @@ stages:
           		'ParameterKey':'InstanceType',
           		'ParameterValue':'t2.micro'
             }
-          ]``
+          ]
     - task: Docker@2
       displayName: Build an image
       inputs:
