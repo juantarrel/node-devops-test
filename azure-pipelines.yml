@@ -20,14 +20,15 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - task: S3Download@1
+    - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
         regionName: 'us-east-1'
-        bucketName: 'ambryhill-cf'
-        sourceFolder: '/'
-        globExpressions: 'prod-2020-05-27.json'
-        targetFolder: '/'
+        stackName: 'stack-ah-prod'
+        templateSource: 's3'
+        s3BucketName: 'ambryhill-cf'
+        s3ObjectKey: 'prod-2020-05-27.json'
+    
     - task: Docker@2
       displayName: Build an image
       inputs:
