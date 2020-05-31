@@ -30,32 +30,24 @@ stages:
         s3ObjectKey: 'prod-2020-05-27.json'
         templateParametersSource: 'inline'
         templateParameters: |
-          [
-          	{
-          		'ParameterKey':'AZs',
-          		'ParameterValue':'us-east-1d, us-east-1a'
-            },
-          	{
-          		'ParameterKey':'InstanceCount',
-          		'ParameterValue':'2'
-            },
-          	{
-          		'ParameterKey':'Subnets',
-          		'ParameterValue':'subnet-09956b30369a7c713, subnet-0cf3a8c9703dc2ca3'
-            },
-          	{
-          		'ParameterKey':'VpcId',
-          		'ParameterValue':'vpc-02777bc8e193269b2'
-            },
-          	{
-          		'ParameterKey':"KeyName',
-          		'ParameterValue':"key_ambryhill_prod'
-            },
-          	{
-          		'ParameterKey':'InstanceType',
-          		'ParameterValue':'t2.micro'
-            }
-          ]
+          -
+            ParameterKey: 'AZs'
+            ParameterValue: 'us-east-1d, us-east-1a'
+          -
+            ParameterKey: 'InstanceCount'
+            ParameterValue: '2'
+          -
+            ParameterKey: 'Subnets'
+            ParameterValue: 'subnet-09956b30369a7c713, subnet-0cf3a8c9703dc2ca3'
+          -
+            ParameterKey: 'VpcId'
+            ParameterValue: 'vpc-02777bc8e193269b2'
+          -
+            ParameterKey: 'KeyName'
+            ParameterValue: 'key_ambryhill_prod'
+          -
+            ParameterKey: 'InstanceType'
+            ParameterValue: 't2.micro'
     - task: Docker@2
       displayName: Build an image
       inputs:
