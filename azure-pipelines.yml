@@ -1,4 +1,12 @@
 # Docker
+- task: S3Download@1
+  inputs:
+    awsCredentials: 'Aws ambryhill test'
+    regionName: 'us-east-1'
+    bucketName: 'ambryhill-cf'
+    globExpressions: '**'
+    targetFolder: 'cf-prod'
+    overwrite: false
 # Build a Docker image 
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
