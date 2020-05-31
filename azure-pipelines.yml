@@ -24,7 +24,7 @@ stages:
       inputs:
         awsCredentials: 'Aws ambryhill test'
         regionName: 'us-east-1'
-        stackName: 'stack-ah-prod'
+        stackName: 'stack-ah-prod-$(Build.BuildId)'
         templateSource: 's3'
         s3BucketName: 'ambryhill-cf'
         s3ObjectKey: 'prod-2020-05-27.json'
