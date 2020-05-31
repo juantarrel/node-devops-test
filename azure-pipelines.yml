@@ -50,7 +50,7 @@ stages:
             ParameterValue: 't2.micro'
     - task: Docker@2
       inputs:
-        repository: '207155759131.dkr.ecr.us-east-1.amazonaws.com/node-prod-app'
+        repository: 'node-base'
         command: 'build'
         Dockerfile: '**/Dockerfile'
         arguments: 'APP_DOMAIN=PRODUCTION'
