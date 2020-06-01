@@ -60,7 +60,7 @@ stages:
         regionName: '$(cfRegionName)'
         scriptType: 'inline'
         inlineScript: |
-          /home/vsts/.local/bin/aws secretsmanager get-secret-value --secret-id ambryhillproto | jq -r '.SecretString' | jq -r '.password'
+          /home/vsts/.local/bin/aws secretsmanager get-secret-value --secret-id dev/ah | jq -r '.SecretString' | jq -r '.password'
 
     - task: CmdLine@2
       inputs:
