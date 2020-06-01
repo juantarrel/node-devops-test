@@ -7,6 +7,7 @@ resources:
 variables:
   envAH: 'prod'
   buildId: '$(Build.BuildId)'
+  theAwsCredentials: 'Aws ambryhill test'
   stackPrefix: 'elb-ah-prod'
   # S3 for CloudFormation template
   s3Bucket: 'ambryhill-cf'
@@ -52,10 +53,21 @@ stages:
         script: 'sudo apt install python3-pip && echo $PATH && printenv | more'
     - task: CmdLine@2
       inputs:
-        script: 'pip3 install boto3 '           
+        script: 'pip3 install boto3 awscli --user'   
+    - task: AWSShellScript@1
+      inputs:
+        awsCredentials: '$(theAwsCredentials)' # Serivce connection name
+        regionName: '$(cfRegionName)'
+        scriptType: 'inline'
+        inlineScript: |
+          /home/vsts/.local/bin/aws secretsmanager get-secret-value --secret-id dev/pass | jq -r '.SecretString' | jq -r '.password'
+
+    - task: CmdLine@2
+      inputs:
+        script: 'echo $SECRET'  
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
-        awsCredentials: 'Aws ambryhill test'
+        awsCredentials: '$(theAwsCredentials)'
         regionName: '$(cfRegionName)'
         stackName: '$(stackPrefix)-$(buildId)'
         templateSource: 's3'
@@ -83,6 +95,7 @@ stages:
             ParameterValue: '$(cfInstanceType)'
     - task: PythonScript@0
       inputs:
+        awsCredentials: 'aws_tokens'
         scriptSource: 'inline'
         script: |
           import boto3
