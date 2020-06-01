@@ -53,4 +53,3 @@ stages:
         repository: 'ah-base'
         command: 'build'
         Dockerfile: 'Dockerfile'
-        arguments: 'APP_DOMAIN=PRODUCTION'
