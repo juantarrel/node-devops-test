@@ -61,7 +61,6 @@ stages:
         scriptType: 'inline'
         inlineScript: |
           SECRET=$(aws secretsmanager get-secret-value --secret-id dev/ah | jq -r '.SecretString' | jq -r '.password')
-        echo "##vso[task.setvariable variable=SECRET]$SECRET"
 
     - task: CmdLine@2
       inputs:
