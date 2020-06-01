@@ -61,5 +61,6 @@ stages:
         imageSource: 'imageid'
         sourceImageId: 'ah-base:$(Build.BuildId)'
         repositoryName: 'prod-ambryhill-app'
-    
+        pushTag: '$(Build.BuildId)'
+
     
