@@ -49,11 +49,15 @@ stages:
         script: 'sudo apt install python3-pip'
     - task: CmdLine@2
       inputs:
-        script: 'pip3 install boto3'        
+        script: 'pip3 install boto3'   
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'             
     - task: PythonScript@0
       inputs:
         scriptSource: 'inline'
         script: 'import boto3'
+        
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
