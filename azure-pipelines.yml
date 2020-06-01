@@ -70,11 +70,11 @@ stages:
         arguments: 'ecs=ah_prod build=$(Build.BuildId) '
         scriptType: 'inline'
         inlineScript: |
-          aws ecs register-task-definition --family $1 --container-definitions "
+          aws ecs register-task-definition --family $ecs --container-definitions "
               [
                  {
                     \"name\":\"app\",
-                    \"image\":\"207155759131.dkr.ecr.us-east-1.amazonaws.com/prod-ambryhill-app:$2\",
+                    \"image\":\"207155759131.dkr.ecr.us-east-1.amazonaws.com/prod-ambryhill-app:$build\",
                     \"cpu\":256,
                     \"memory\":256,
                     \"essential\":true,
