@@ -44,6 +44,10 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
+    - task: PythonScript@0
+      inputs:
+        scriptSource: 'inline'
+        script: 'import boto3'
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
