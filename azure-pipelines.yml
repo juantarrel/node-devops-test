@@ -50,7 +50,7 @@ stages:
             ParameterValue: 't2.micro'
     - task: Docker@2
       inputs:
-        repository: 'ahbase'
+        repository: 'ah-base'
         command: 'build'
         Dockerfile: 'Dockerfile'
         arguments: '--build-arg APP_DOMAIN=PRODUCTION'
