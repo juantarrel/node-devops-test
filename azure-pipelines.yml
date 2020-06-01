@@ -52,12 +52,7 @@ stages:
         script: 'sudo apt install python3-pip'
     - task: CmdLine@2
       inputs:
-        script: 'pip3 install boto3'           
-    - task: PythonScript@0
-      inputs:
-        scriptSource: 'inline'
-        script: 'import boto3'
-        
+        script: 'pip3 install boto3 '           
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
@@ -86,6 +81,30 @@ stages:
           -
             ParameterKey: 'InstanceType'
             ParameterValue: '$(cfInstanceType)'
+    - task: PythonScript@0
+      inputs:
+        scriptSource: 'inline'
+        script: |
+          import boto3
+          from botocore.exceptions import ClientError
+
+          try:
+
+              cf_client = boto3.client('cloudformation')
+              responsecf = cf_client.describe_stack_resource(
+                  StackName='$(stackPrefix)-$(buildId)',
+                  LogicalResourceId='ElasticLoadBalancer'
+              )
+              print(responsecf)
+
+              # elb_client = boto3.client('elb')
+              # responseelb = elb_client.LoadBalancerName(
+              #     LoadBalancerName=cluster_name
+              # )
+          except ClientError as e:
+              print(e)
+          else:
+              pass            
     - task: Docker@2
       inputs:
         repository: '$(dockerBase)'
