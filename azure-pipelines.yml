@@ -110,4 +110,4 @@ stages:
         awsCredentials: 'Aws ambryhill test'
         regionName: 'us-east-1'
         scriptType: 'inline'
-        inlineScript: 'aws ecs update-service --cluster ah_prod --service nodec --task-definition ah_prod:$(TASK_DEFINITION)'
+        inlineScript: 'aws ecs update-service --cluster ah_prod --service nodec --task-definition ah_prod:$TASK_DEFINITION'
