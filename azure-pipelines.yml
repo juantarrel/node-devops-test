@@ -44,6 +44,9 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
+    - task: CmdLine@2
+      inputs:
+        script: 'apt install python3-pip'
     - task: PythonScript@0
       inputs:
         scriptSource: 'inline'
