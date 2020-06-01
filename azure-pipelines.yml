@@ -60,7 +60,8 @@ stages:
         regionName: '$(cfRegionName)'
         scriptType: 'inline'
         inlineScript: |
-          /home/vsts/.local/bin/aws secretsmanager get-secret-value --secret-id dev/ah | jq -r '.SecretString' | jq -r '.password'
+          SECRET=$(aws secretsmanager get-secret-value --secret-id dev/ah | jq -r '.SecretString' | jq -r '.password')
+        echo "##vso[task.setvariable variable=SECRET]$SECRET"
 
     - task: CmdLine@2
       inputs:
