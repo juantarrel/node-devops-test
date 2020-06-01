@@ -100,8 +100,6 @@ stages:
                     ]
                  }
               ]" > revision.txt
-          cat revision.txt
-          rm -R Prod-*.txt
           cat revision.txt | grep revision | awk '{print $2}' | sed 's/,/ /g' > Prod-$(Build.BuildId).txt
           BUILD_REVISION=`cat Prod-$(Build.BuildId).txt`
         failOnStandardError: true
