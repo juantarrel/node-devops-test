@@ -24,7 +24,7 @@ stages:
       inputs:
         awsCredentials: 'Aws ambryhill test'
         regionName: 'us-east-1'
-        stackName: 'stack-ah-prod-$(Build.BuildId)'
+        stackName: 'stack-ah-prod-$(tag)'
         templateSource: 's3'
         s3BucketName: 'ambryhill-cf'
         s3ObjectKey: 'prod-2020-05-31.json'
@@ -59,7 +59,7 @@ stages:
         awsCredentials: 'Aws ambryhill test'
         regionName: 'us-east-1'
         imageSource: 'imageid'
-        sourceImageId: 'ah-base:$(Build.BuildId)'
+        sourceImageId: 'ah-base:$(tag)'
         repositoryName: 'prod-ambryhill-app'
         pushTag: '$(Build.BuildId)'
 
@@ -74,7 +74,7 @@ stages:
               [
                  {
                     \"name\":\"app\",
-                    \"image\":\"207155759131.dkr.ecr.us-east-1.amazonaws.com/prod-ambryhill-app:$(Build.BuildId)\",
+                    \"image\":\"207155759131.dkr.ecr.us-east-1.amazonaws.com/prod-ambryhill-app:$(tag)\",
                     \"cpu\":256,
                     \"memory\":256,
                     \"essential\":true,
@@ -100,14 +100,14 @@ stages:
                     ]
                  }
               ]" > revision.txt
-          cat revision.txt | grep revision | awk '{print $2}' | sed 's/,/ /g' > Prod-$(Build.BuildId).txt
-          echo TAST_DEFINITION_VALUE
-          cat Prod-$(Build.BuildId).txt
-          TASK_DEFINITION=`cat Prod-$(Build.BuildId).txt`
+          cat revision.txt | grep revision | awk '{print $2}' | sed 's/,/ /g' > Prod-$(tag).txt
+          TASK_DEFINITION=`cat Prod-$(tag).txt`
+          echo TASK_DEFINITION_VALUE
+          echo $TASK_DEFINITION
         failOnStandardError: true
     - task: AWSShellScript@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
         regionName: 'us-east-1'
         scriptType: 'inline'
-        inlineScript: 'aws ecs update-service --cluster ah_prod --service nodec --task-definition ah_prod:$TASK_DEFINITION'
+        inlineScript: 'aws ecs update-service --cluster ah_prod --service nodec --task-definition ah_prod:$(TASK_DEFINITION)'
