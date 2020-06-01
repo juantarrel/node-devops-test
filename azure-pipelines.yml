@@ -7,12 +7,13 @@ resources:
 variables:
   envAH: 'prod'
   buildId: '$(Build.BuildId)'
-  stackPrefix: 'stack-ah-prod-'
+  stackPrefix: 'elb-ah-prod'
   # S3 for CloudFormation template
   s3Bucket: 'ambryhill-cf'
   s3BucketObjKey: 'prod-2020-05-31.json'
   # CloudFormation params
   cfRegionName: 'us-east-1'
+  cfAZs: 'us-east-1d, us-east-1a'
   cfInstanceCount: '2'
   cfSubnets: 'subnet-09956b30369a7c713, subnet-0cf3a8c9703dc2ca3'
   cfVpcId: 'vpc-02777bc8e193269b2'
@@ -46,60 +47,60 @@ stages:
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
-        regionName: 'us-east-1'
-        stackName: 'stack-ah-prod-$(buildId)'
+        regionName: '$(cfRegionName)'
+        stackName: '$(stackPrefix)-$(buildId)'
         templateSource: 's3'
-        s3BucketName: 'ambryhill-cf'
-        s3ObjectKey: 'prod-2020-05-31.json'
+        s3BucketName: '$(s3Bucket)'
+        s3ObjectKey: '$(s3BucketObjKey)'
         templateParametersSource: 'inline'
         templateParameters: |
           -
             ParameterKey: 'AZs'
-            ParameterValue: 'us-east-1d, us-east-1a'
+            ParameterValue: '$(cfAZs)'
           -
             ParameterKey: 'InstanceCount'
-            ParameterValue: '2'
+            ParameterValue: '$(cfInstanceCount)'
           -
             ParameterKey: 'Subnets'
-            ParameterValue: 'subnet-09956b30369a7c713, subnet-0cf3a8c9703dc2ca3'
+            ParameterValue: '$(cfSubnets)'
           -
             ParameterKey: 'VpcId'
-            ParameterValue: 'vpc-02777bc8e193269b2'
+            ParameterValue: '$(cfVpcId)'
           -
             ParameterKey: 'KeyName'
-            ParameterValue: 'key_ambryhill_prod'
+            ParameterValue: '$(cfKeyName)'
           -
             ParameterKey: 'InstanceType'
-            ParameterValue: 't2.micro'
+            ParameterValue: '$(cfInstanceType)'
     - task: Docker@2
       inputs:
-        repository: 'ah-base'
+        repository: '$(dockerBase)'
         command: 'build'
         Dockerfile: 'Dockerfile'
-        arguments: '--build-arg APP_DOMAIN=PRODUCTION'
+        arguments: '$(dockerArgs)'
     - task: ECRPushImage@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
-        regionName: 'us-east-1'
+        regionName: '$(cfRegionName)'
         imageSource: 'imageid'
-        sourceImageId: 'ah-base:$(buildId)'
-        repositoryName: 'prod-ambryhill-app'
+        sourceImageId: '$(dockerBase):$(buildId)'
+        repositoryName: '$(ecrRepositoryName)'
         pushTag: '$(buildId)'
 
     - task: AWSShellScript@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
-        regionName: 'us-east-1'
+        regionName: '$(cfRegionName)'
         arguments: ''
         scriptType: 'inline'
         inlineScript: |
-          aws ecs register-task-definition --family ah_prod --container-definitions "
+          aws ecs register-task-definition --family $(ecsTask) --container-definitions "
               [
                  {
-                    \"name\":\"app\",
-                    \"image\":\"207155759131.dkr.ecr.us-east-1.amazonaws.com/prod-ambryhill-app:$(buildId)\",
-                    \"cpu\":256,
-                    \"memory\":256,
+                    \"name\":\"$(ecs1Name)\",
+                    \"image\":\"$(ecs1Image)\",
+                    \"cpu\":$(ecs1Cpu),
+                    \"memory\":$(ecs1Memory),
                     \"essential\":true,
                     \"portMappings\":[
                        {
@@ -126,5 +127,5 @@ stages:
           cat revision.txt | grep revision | awk '{print $2}' | sed 's/,/ /g' > Prod-$(buildId).txt
           TASK_DEFINITION=`cat Prod-$(buildId).txt`
           echo $TASK_DEFINITION
-          aws ecs update-service --cluster ah_prod --service nodec --task-definition ah_prod:`cat Prod-$(buildId).txt`
+          aws ecs update-service --cluster $(ecsCluster) --service $(nodec) --task-definition $(ecsTask):`cat Prod-$(buildId).txt`
         failOnStandardError: true
