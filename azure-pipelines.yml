@@ -127,5 +127,5 @@ stages:
           cat revision.txt | grep revision | awk '{print $2}' | sed 's/,/ /g' > Prod-$(buildId).txt
           TASK_DEFINITION=`cat Prod-$(buildId).txt`
           echo $TASK_DEFINITION
-          aws ecs update-service --cluster $(ecsCluster) --service $(nodec) --task-definition $(ecsTask):`cat Prod-$(buildId).txt`
+          aws ecs update-service --cluster $(ecsCluster) --service $(ecsService) --task-definition $(ecsTask):`cat Prod-$(buildId).txt`
         failOnStandardError: true
