@@ -54,12 +54,12 @@ stages:
         command: 'build'
         Dockerfile: 'Dockerfile'
         arguments: '--build-arg APP_DOMAIN=PRODUCTION'
-    
     - task: ECRPushImage@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
         regionName: 'us-east-1'
-        imageSource: 'imagename'
-        sourceImageName: 'ah-base:$(Build.BuildId)'
+        imageSource: 'imageid'
+        sourceImageName: 'ah-base'
         repositoryName: 'prod-ambryhill-app'
+    
     
