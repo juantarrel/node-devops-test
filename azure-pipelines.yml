@@ -101,6 +101,8 @@ stages:
                  }
               ]" > revision.txt
           cat revision.txt | grep revision | awk '{print $2}' | sed 's/,/ /g' > Prod-$(Build.BuildId).txt
+          echo TAST_DEFINITION_VALUE
+          cat Prod-$(Build.BuildId).txt
           TASK_DEFINITION=`cat Prod-$(Build.BuildId).txt`
         failOnStandardError: true
     - task: AWSShellScript@1
