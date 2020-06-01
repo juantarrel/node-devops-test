@@ -47,6 +47,9 @@ stages:
     - task: CmdLine@2
       inputs:
         script: 'sudo apt install python3-pip'
+    - task: CmdLine@2
+      inputs:
+        script: 'pip3 install boto3'        
     - task: PythonScript@0
       inputs:
         scriptSource: 'inline'
