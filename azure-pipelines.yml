@@ -67,14 +67,14 @@ stages:
       inputs:
         awsCredentials: 'Aws ambryhill test'
         regionName: 'us-east-1'
-        arguments: 'ecs=ah_prod build=$(Build.BuildId) '
+        arguments: ''
         scriptType: 'inline'
         inlineScript: |
-          aws ecs register-task-definition --family $ecs --container-definitions "
+          aws ecs register-task-definition --family ah_prod --container-definitions "
               [
                  {
                     \"name\":\"app\",
-                    \"image\":\"207155759131.dkr.ecr.us-east-1.amazonaws.com/prod-ambryhill-app:$build\",
+                    \"image\":\"207155759131.dkr.ecr.us-east-1.amazonaws.com/prod-ambryhill-app:$(Build.BuildId)\",
                     \"cpu\":256,
                     \"memory\":256,
                     \"essential\":true,
