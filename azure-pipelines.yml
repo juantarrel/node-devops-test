@@ -59,7 +59,7 @@ stages:
         awsCredentials: 'Aws ambryhill test'
         regionName: 'us-east-1'
         imageSource: 'imageid'
-        sourceImageId: 'ah-base'
+        sourceImageId: 'ah-base:$(Build.BuildId)'
         repositoryName: 'prod-ambryhill-app'
     
     
