@@ -50,7 +50,7 @@ stages:
     - task: PythonScript@0
       inputs:
         scriptSource: 'inline'
-        script: 'python -m pip3 install --upgrade pip boto3'
+        script: 'python3 -m pip3 install --upgrade pip boto3'
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: 'Aws ambryhill test'
