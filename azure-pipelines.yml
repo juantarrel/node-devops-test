@@ -46,7 +46,7 @@ stages:
     steps:
     - task: CmdLine@2
       inputs:
-        script: 'apt install python3-pip'
+        script: 'sudo apt install python3-pip'
     - task: PythonScript@0
       inputs:
         scriptSource: 'inline'
