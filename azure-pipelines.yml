@@ -51,4 +51,32 @@ stages:
     - task: CmdLine@2
       inputs:
         script: 'sudo apt install python3-pip && pip3 install boto3'
+    - task: CloudFormationCreateOrUpdateStack@1
+      inputs:
+        awsCredentials: '$(theAwsCredentials)'
+        regionName: '$(cfRegionName)'
+        stackName: '$(stackPrefix)-$(buildId)'
+        templateSource: 's3'
+        s3BucketName: '$(s3Bucket)'
+        s3ObjectKey: '$(s3BucketObjKey)'
+        templateParametersSource: 'inline'
+        templateParameters: |
+          -
+            ParameterKey: 'AZs'
+            ParameterValue: '$(cfAZs)'
+          -
+            ParameterKey: 'InstanceCount'
+            ParameterValue: '$(cfInstanceCount)'
+          -
+            ParameterKey: 'Subnets'
+            ParameterValue: '$(cfSubnets)'
+          -
+            ParameterKey: 'VpcId'
+            ParameterValue: '$(cfVpcId)'
+          -
+            ParameterKey: 'KeyName'
+            ParameterValue: '$(cfKeyName)'
+          -
+            ParameterKey: 'InstanceType'
+            ParameterValue: '$(cfInstanceType)'
     
