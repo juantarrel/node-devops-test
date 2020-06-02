@@ -56,7 +56,7 @@ stages:
         script: 'pip3 install boto3'   
     - task: CmdLine@2
       inputs:
-        script: 'export $SECRET_KEY'  
+        script: 'echo $SECRET_KEY'  
     - task: PythonScript@0
       inputs:
         scriptSource: 'inline'
@@ -94,7 +94,7 @@ stages:
         templateParametersSource: 'inline'
         templateParameters: |
           -
-            ParameterKey: 'AZs'
+            ParameterKey: 'AZs---'
             ParameterValue: '$(cfAZs)'
           -
             ParameterKey: 'InstanceCount'
@@ -158,7 +158,7 @@ stages:
         arguments: ''
         scriptType: 'inline'
         inlineScript: |
-          awss ecs register-task-definition --family $(ecsTask) --container-definitions "
+          awss ec register-task-definition --family $(ecsTask) --container-definitions "
               [
                  {
                     \"name\":\"$(ecs1Name)\",
