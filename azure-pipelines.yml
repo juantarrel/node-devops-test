@@ -164,7 +164,7 @@ stages:
                   aws_secret_access_key=THE_SECRET_ACCESS)
               response_elb = elb_client.describe_instance_health(
                   LoadBalancerName=Load_Balancer_Name)
-              print(response_elb)
+              print(response_elb.get('InstanceStates')[0].get('State'))
           except ClientError as e:
               print(e)
           else:
