@@ -50,6 +50,7 @@ stages:
       inputs:
         versionSpec: '3.x'             
     - task: CmdLine@2
+      displayName: 'Installing Python dependencies'
       inputs:
         script: 'sudo apt install python3-pip && pip3 install boto3'
     - task: CloudFormationCreateOrUpdateStack@1
