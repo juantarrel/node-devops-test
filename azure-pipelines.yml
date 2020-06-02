@@ -123,5 +123,47 @@ stages:
         imageSource: 'imageid'
         sourceImageId: '$(dockerBase):$(buildId)'
         repositoryName: '$(ecrRepositoryName)'
-        pushTag: '$(buildId)'        
+        pushTag: '$(buildId)'     
+    - task: AWSShellScript@1
+      inputs:
+        awsCredentials: '$(theAwsCredentials)'
+        regionName: '$(cfRegionName)'
+        arguments: ''
+        scriptType: 'inline'
+        inlineScript: |
+          aws ec register-task-definition --family $(ecsTask) --container-definitions "
+              [
+                 {
+                    \"name\":\"$(ecs1Name)\",
+                    \"image\":\"$(ecs1Image)\",
+                    \"cpu\":$(ecs1Cpu),
+                    \"memory\":$(ecs1Memory),
+                    \"essential\":true,
+                    \"portMappings\":[
+                       {
+                          \"containerPort\":80,
+                          \"hostPort\":80
+                       },
+                       {
+                          \"containerPort\":443,
+                          \"hostPort\":443
+                       }
+                    ],
+                    \"environment\":[
+                       {
+                        \"name\": \"conf\",
+                        \"value\": \"prod\"
+                        },
+                       {
+                          \"name\":\"env\",
+                          \"value\":\"prod\"
+                       }
+                    ]
+                 }
+              ]" > revision.txt
+          cat revision.txt | grep revision | awk '{print $2}' | sed 's/,/ /g' > Prod-$(buildId).txt
+          TASK_DEFINITION=`cat Prod-$(buildId).txt`
+          echo $TASK_DEFINITION
+          aws ecs update-service --cluster $(ecsCluster) --service $(ecsService) --task-definition $(ecsTask):`cat Prod-$(buildId).txt`
+        failOnStandardError: true           
     
