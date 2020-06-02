@@ -163,14 +163,18 @@ stages:
                   region_name='$(cfRegionName)',
                   aws_access_key_id=THE_SECRET_KEY,
                   aws_secret_access_key=THE_SECRET_ACCESS)
-
+              print('Waiting for the load balancer')    
+              print('...')
               time.sleep(300)
               state_elb = 'OutOfService'
               while state_elb == 'OutOfService':
+                  print('Checking if the load balancer is ready')    
+                  print('...')
                   time.sleep(30)
                   response_elb = elb_client.describe_instance_health(
                   LoadBalancerName=Load_Balancer_Name)
                   state_elb = response_elb.get('InstanceStates')[0].get('State')
+              print('Load balancer is ready (=')    
           except ClientError as e:
               print(e)
           else:
