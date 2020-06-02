@@ -174,13 +174,17 @@ stages:
           from botocore.exceptions import ClientError
 
           try:
+              THE_SECRET_KEY = os.environ.get('THE_SECRET_KEY')
+              THE_SECRET_ACCESS = os.environ.get('THE_SECRET_ACCESS')
               Load_Balancer_Name = os.environ.get('Load_Balancer_Name')
 
               elb_client = boto3.client('elb')
-              responseelb = elb_client.LoadBalancerName(
-                  LoadBalancerName=Load_Balancer_Name
+              response_elb = elb_client.LoadBalancerName(
+                  LoadBalancerName=Load_Balancer_Name,
+                  aws_access_key_id=THE_SECRET_KEY,
+                  aws_secret_access_key=THE_SECRET_ACCESS)
               )
-              print(responseelb)
+              print(response_elb)
           except ClientError as e:
               print(e)
           else:
