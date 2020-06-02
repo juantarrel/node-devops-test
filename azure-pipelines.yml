@@ -1,0 +1,217 @@
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  envAH: 'prod'
+  buildId: '$(Build.BuildId)'
+  theAwsCredentials: 'aws'
+  stackPrefix: 'elb-ah-prod'
+  # S3 for CloudFormation template
+  s3Bucket: 'ambryhill-cf'
+  s3BucketObjKey: 'prod-2020-05-31.json'
+  # CloudFormation params
+  cfRegionName: 'us-east-1'
+  cfAZs: 'us-east-1d, us-east-1a'
+  cfInstanceCount: '2'
+  cfSubnets: 'subnet-09956b30369a7c713, subnet-0cf3a8c9703dc2ca3'
+  cfVpcId: 'vpc-02777bc8e193269b2'
+  cfKeyName: 'key_ambryhill_prod'
+  cfInstanceType: 't2.micro'
+  # docker build
+  dockerBase: 'ah-base'
+  dockerArgs: '--build-arg APP_DOMAIN=PRODUCTION'
+  # ECR for repository
+  ecrRepositoryName: 'prod-ambryhill-app'
+  # Orchestrator ECS
+  ecsTask: 'ah_prod'
+  # Docker containers
+  ecs1Name: 'app'
+  ecs1Image: '207155759131.dkr.ecr.us-east-1.amazonaws.com/prod-ambryhill-app:$(buildId)'
+  ecs1Cpu: '256'
+  ecs1Memory: '256'
+  # Orchestrator ECS service and cluster
+  ecsCluster: 'ah_prod'
+  ecsService: 'nodec'
+  # Route 53
+  r53ZoneId: 'Z0533257MVGVQZNFS7IW'
+  r53Domain: 'prod.kinot3.com'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UsePythonVersion@0
+      displayName: 'Use Python 3.x'
+      inputs:
+        versionSpec: '3.x'             
+    - task: CmdLine@2
+      displayName: 'Installing Python dependencies'
+      inputs:
+        script: 'sudo apt install python3-pip && pip3 install boto3'
+    - task: CloudFormationCreateOrUpdateStack@1
+      displayName: 'Creating Stack CloudFormation'
+      inputs:
+        awsCredentials: '$(theAwsCredentials)'
+        regionName: '$(cfRegionName)'
+        stackName: '$(stackPrefix)-$(buildId)'
+        templateSource: 's3'
+        s3BucketName: '$(s3Bucket)'
+        s3ObjectKey: '$(s3BucketObjKey)'
+        templateParametersSource: 'inline'
+        templateParameters: |
+          -
+            ParameterKey: 'AZs'
+            ParameterValue: '$(cfAZs)'
+          -
+            ParameterKey: 'InstanceCount'
+            ParameterValue: '$(cfInstanceCount)'
+          -
+            ParameterKey: 'Subnets'
+            ParameterValue: '$(cfSubnets)'
+          -
+            ParameterKey: 'VpcId'
+            ParameterValue: '$(cfVpcId)'
+          -
+            ParameterKey: 'KeyName'
+            ParameterValue: '$(cfKeyName)'
+          -
+            ParameterKey: 'InstanceType'
+            ParameterValue: '$(cfInstanceType)'
+    - task: Docker@2
+      displayName: 'Making the docker build'
+      inputs:
+        repository: '$(dockerBase)'
+        command: 'build'
+        Dockerfile: 'Dockerfile'
+        arguments: '$(dockerArgs)'
+    - task: ECRPushImage@1
+      displayName: 'Pushing docker image with tag to ECR'
+      inputs:
+        awsCredentials: '$(theAwsCredentials)'
+        regionName: '$(cfRegionName)'
+        imageSource: 'imageid'
+        sourceImageId: '$(dockerBase):$(buildId)'
+        repositoryName: '$(ecrRepositoryName)'
+        pushTag: '$(buildId)'     
+    - task: AWSShellScript@1
+      displayName: 'Register Task and Service to the ECS Cluster'
+      inputs:
+        awsCredentials: '$(theAwsCredentials)'
+        regionName: '$(cfRegionName)'
+        arguments: ''
+        scriptType: 'inline'
+        inlineScript: |
+          aws ecs register-task-definition --family $(ecsTask) --container-definitions "
+              [
+                 {
+                    \"name\":\"$(ecs1Name)\",
+                    \"image\":\"$(ecs1Image)\",
+                    \"cpu\":$(ecs1Cpu),
+                    \"memory\":$(ecs1Memory),
+                    \"essential\":true,
+                    \"portMappings\":[
+                       {
+                          \"containerPort\":80,
+                          \"hostPort\":80
+                       },
+                       {
+                          \"containerPort\":443,
+                          \"hostPort\":443
+                       }
+                    ],
+                    \"environment\":[
+                       {
+                        \"name\": \"conf\",
+                        \"value\": \"prod\"
+                        },
+                       {
+                          \"name\":\"env\",
+                          \"value\":\"prod\"
+                       }
+                    ]
+                 }
+              ]" > revision.txt
+          cat revision.txt | grep revision | awk '{print $2}' | sed 's/,/ /g' > Prod-$(buildId).txt
+          TASK_DEFINITION=`cat Prod-$(buildId).txt`
+          echo $TASK_DEFINITION
+          aws ecs update-service --cluster $(ecsCluster) --service $(ecsService) --task-definition $(ecsTask):`cat Prod-$(buildId).txt`
+        failOnStandardError: true     
+    - task: PythonScript@0
+      displayName: 'Making the BG deployment'
+      inputs:
+        scriptSource: 'inline'
+        script: |
+          import boto3
+          import os
+          import time
+          from botocore.exceptions import ClientError
+
+          THE_SECRET_KEY = os.environ.get('THE_SECRET_KEY')
+          THE_SECRET_ACCESS = os.environ.get('THE_SECRET_ACCESS')
+
+          cf_client = boto3.client('cloudformation',
+              region_name='$(cfRegionName)',
+              aws_access_key_id=THE_SECRET_KEY,
+              aws_secret_access_key=THE_SECRET_ACCESS)
+          
+          responsecf = cf_client.describe_stack_resource(
+              StackName='$(stackPrefix)-$(buildId)',
+              LogicalResourceId='ElasticLoadBalancer'
+          )
+          Load_Balancer_Name = responsecf.get('StackResourceDetail').get('PhysicalResourceId')
+
+          response_cf_ds = cf_client.describe_stacks(
+              StackName='$(stackPrefix)-$(buildId)'
+          )
+          Load_Balancer_URL = response_cf_ds.get('Stacks')[0].get('Outputs')[0].get('OutputValue')
+
+          elb_client = boto3.client('elb',
+              region_name='$(cfRegionName)',
+              aws_access_key_id=THE_SECRET_KEY,
+              aws_secret_access_key=THE_SECRET_ACCESS)
+          print('Waiting for the load balancer')    
+          print('...')
+          time.sleep(300)
+          state_elb = 'OutOfService'
+          while state_elb == 'OutOfService':
+              print('Checking if the load balancer is ready')    
+              print('...')
+              time.sleep(30)
+              response_elb = elb_client.describe_instance_health(
+              LoadBalancerName=Load_Balancer_Name)
+              state_elb = response_elb.get('InstanceStates')[0].get('State')
+          print('Load balancer is ready (=')
+          r53_client = boto3.client('route53',
+              aws_access_key_id=THE_SECRET_KEY,
+              aws_secret_access_key=THE_SECRET_ACCESS)
+          response = r53_client.change_resource_record_sets(
+              HostedZoneId='$(r53ZoneId)',
+              ChangeBatch={
+                  'Comment': 'string',
+                  'Changes': [
+                      {
+                          'Action': 'UPSERT',
+                          'ResourceRecordSet': {
+                              'Name': '$(r53Domain)',
+                              'Type': 'CNAME',
+                              'TTL': 60,
+                              'ResourceRecords': [
+                                  {
+                                      'Value': Load_Balancer_URL.replace("http://", "")
+                                  },
+                              ]
+                          }
+                      },
+                  ]
+              }
+          )  
+          print('The enviroment ($(r53Domain)) is done !!!')      
+    
