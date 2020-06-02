@@ -56,7 +56,7 @@ stages:
         script: 'pip3 install boto3'   
     - task: CmdLine@2
       inputs:
-        script: 'export $SECRET_KEY'  
+        script: 'export SECRET_KEY'  
     - task: PythonScript@0
       inputs:
         scriptSource: 'inline'
