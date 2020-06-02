@@ -54,28 +54,14 @@ stages:
     - task: CmdLine@2
       inputs:
         script: 'pip3 install boto3 awscli --user'   
-    - task: PythonScript@0
+    - task: AWSShellScript@1
       inputs:
-        scriptSource: 'inline'
-        script: |
-          import boto3
-          from botocore.exceptions import ClientError
-
-          try:
-              sm_client = boto3.client('secretsmanager')
-              response_sm = sm_client.get_secret_value(
-                  SecretId='dev/ah'
-              )
-              print(response_sm)
-
-              # elb_client = boto3.client('elb')
-              # responseelb = elb_client.LoadBalancerName(
-              #     LoadBalancerName=cluster_name
-              # )
-          except ClientError as e:
-              print(e)
-          else:
-              pass   
+        awsCredentials: '$(theAwsCredentials)' # Serivce connection name
+        regionName: '$(cfRegionName)'
+        scriptType: 'inline'
+        inlineScript: |
+          SECRET=$(aws secretsmanager get-secret-value --secret-id dev/ah | jq -r '.SecretString' | jq -r '.password')
+          echo $SECRET
 
     - task: CmdLine@2
       inputs:
@@ -110,12 +96,14 @@ stages:
             ParameterValue: '$(cfInstanceType)'
     - task: PythonScript@0
       inputs:
+        awsCredentials: 'aws_tokens'
         scriptSource: 'inline'
         script: |
           import boto3
           from botocore.exceptions import ClientError
 
           try:
+
               cf_client = boto3.client('cloudformation', region_name='$(cfRegionName)')
               responsecf = cf_client.describe_stack_resource(
                   StackName='$(stackPrefix)-$(buildId)',
