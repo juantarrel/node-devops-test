@@ -50,13 +50,7 @@ stages:
         versionSpec: '3.x'             
     - task: CmdLine@2
       inputs:
-        script: 'sudo apt install python3-pip'
-    - task: CmdLine@2
-      inputs:
-        script: 'pip3 install boto3'   
-    - task: CmdLine@2
-      inputs:
-        script: 'printenv | more'     
+        script: 'sudo apt install python3-pip && pip3 install boto3'
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: '$(theAwsCredentials)'
