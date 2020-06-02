@@ -64,8 +64,7 @@ stages:
           echo $SECRET
           echo 'SECRETO ^'
 
-    - task: CmdLine@2
-      inputs:
+    - script: |
         script: 'echo $SECRET'  
     - task: PythonScript@0
       inputs:
