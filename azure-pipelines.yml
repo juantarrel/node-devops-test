@@ -110,4 +110,10 @@ stages:
               print(e)
           else:
               pass 
+    - task: Docker@2
+      inputs:
+        repository: '$(dockerBase)'
+        command: 'build'
+        Dockerfile: 'Dockerfile'
+        arguments: '$(dockerArgs)'
     
