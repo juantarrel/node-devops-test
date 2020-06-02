@@ -205,7 +205,7 @@ stages:
                               'TTL': 60,
                               'ResourceRecords': [
                                   {
-                                      'Value': Load_Balancer_URL
+                                      'Value': Load_Balancer_URL.replace("http://", "")
                                   },
                               ]
                           }
