@@ -60,6 +60,7 @@ stages:
         regionName: '$(cfRegionName)'
         scriptType: 'inline'
         inlineScript: |
+          ls -a /home/vsts/
           echo $(aws secretsmanager get-secret-value --secret-id dev/ah)
           SECRET_KEY=$(aws secretsmanager get-secret-value --secret-id dev/ah | jq -r '.SecretString' | jq -r '.password')
           echo $SECRET_KEY
