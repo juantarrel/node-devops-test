@@ -54,18 +54,6 @@ stages:
     - task: CmdLine@2
       inputs:
         script: 'pip3 install boto3 awscli --user'   
-    - task: AWSShellScript@1
-      inputs:
-        awsCredentials: '$(theAwsCredentials)' # Serivce connection name
-        regionName: '$(cfRegionName)'
-        scriptType: 'inline'
-        inlineScript: |
-          ls -a /home/vsts/
-          echo $(aws secretsmanager get-secret-value --secret-id dev/ah)
-          SECRET_KEY=$(aws secretsmanager get-secret-value --secret-id dev/ah | jq -r '.SecretString' | jq -r '.password')
-          echo $SECRET_KEY
-          echo 'SECRETO ^'
-
     - script: |
         echo $SECRET_KEY
     - task: PythonScript@0
