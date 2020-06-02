@@ -60,6 +60,7 @@ stages:
         regionName: '$(cfRegionName)'
         scriptType: 'inline'
         inlineScript: |
+          echo $(aws secretsmanager get-secret-value --secret-id dev/ah | jq -r '.SecretString' | jq -r '.password')
           SECRET=$(aws secretsmanager get-secret-value --secret-id dev/ah | jq -r '.SecretString' | jq -r '.password')
           echo $SECRET
           echo 'SECRETO ^'
