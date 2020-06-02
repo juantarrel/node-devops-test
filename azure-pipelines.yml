@@ -46,12 +46,14 @@ stages:
       vmImage: 'ubuntu-latest'
     steps:
     - task: UsePythonVersion@0
+      displayName: 'Use Python 3.x'
       inputs:
         versionSpec: '3.x'             
     - task: CmdLine@2
       inputs:
         script: 'sudo apt install python3-pip && pip3 install boto3'
     - task: CloudFormationCreateOrUpdateStack@1
+      displayName: 'Creating Stack CloudFormation'
       inputs:
         awsCredentials: '$(theAwsCredentials)'
         regionName: '$(cfRegionName)'
@@ -80,12 +82,14 @@ stages:
             ParameterKey: 'InstanceType'
             ParameterValue: '$(cfInstanceType)'
     - task: Docker@2
+      displayName: 'Making the docker build'
       inputs:
         repository: '$(dockerBase)'
         command: 'build'
         Dockerfile: 'Dockerfile'
         arguments: '$(dockerArgs)'
     - task: ECRPushImage@1
+      displayName: 'Pushing docker image with tag to ECR'
       inputs:
         awsCredentials: '$(theAwsCredentials)'
         regionName: '$(cfRegionName)'
@@ -94,6 +98,7 @@ stages:
         repositoryName: '$(ecrRepositoryName)'
         pushTag: '$(buildId)'     
     - task: AWSShellScript@1
+      displayName: 'Register Task and Service to the ECS Cluster'
       inputs:
         awsCredentials: '$(theAwsCredentials)'
         regionName: '$(cfRegionName)'
@@ -136,6 +141,7 @@ stages:
           aws ecs update-service --cluster $(ecsCluster) --service $(ecsService) --task-definition $(ecsTask):`cat Prod-$(buildId).txt`
         failOnStandardError: true     
     - task: PythonScript@0
+      displayName: 'Making the BG deployment'
       inputs:
         scriptSource: 'inline'
         script: |
