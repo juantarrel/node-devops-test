@@ -170,6 +170,12 @@ stages:
               print(responsecf)
               Load_Balancer_Name = responsecf.get('StackResourceDetail').get('PhysicalResourceId')
 
+              response_cf_ds = cf_client.describe_stacks(
+                  StackName='$(stackPrefix)-$(buildId)'
+              )
+              print(response_cf_ds)
+              Load_Balancer_URL = response_cf_ds.get('Stacks')[0].get('Outputs')[0].get('OutputValue')
+
               elb_client = boto3.client('elb',
                   region_name='$(cfRegionName)',
                   aws_access_key_id=THE_SECRET_KEY,
@@ -202,7 +208,7 @@ stages:
                                   'TTL': 60,
                                   'ResourceRecords': [
                                       {
-                                          'Value': Load_Balancer_Name
+                                          'Value': Load_Balancer_URL
                                       },
                                   ]
                               }
