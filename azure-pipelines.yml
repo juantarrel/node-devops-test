@@ -154,69 +154,64 @@ stages:
           import time
           from botocore.exceptions import ClientError
 
-          try:
-              THE_SECRET_KEY = os.environ.get('THE_SECRET_KEY')
-              THE_SECRET_ACCESS = os.environ.get('THE_SECRET_ACCESS')
+          THE_SECRET_KEY = os.environ.get('THE_SECRET_KEY')
+          THE_SECRET_ACCESS = os.environ.get('THE_SECRET_ACCESS')
 
-              cf_client = boto3.client('cloudformation',
-                  region_name='$(cfRegionName)',
-                  aws_access_key_id=THE_SECRET_KEY,
-                  aws_secret_access_key=THE_SECRET_ACCESS)
-              
-              responsecf = cf_client.describe_stack_resource(
-                  StackName='$(stackPrefix)-$(buildId)',
-                  LogicalResourceId='ElasticLoadBalancer'
-              )
-              Load_Balancer_Name = responsecf.get('StackResourceDetail').get('PhysicalResourceId')
+          cf_client = boto3.client('cloudformation',
+              region_name='$(cfRegionName)',
+              aws_access_key_id=THE_SECRET_KEY,
+              aws_secret_access_key=THE_SECRET_ACCESS)
+          
+          responsecf = cf_client.describe_stack_resource(
+              StackName='$(stackPrefix)-$(buildId)',
+              LogicalResourceId='ElasticLoadBalancer'
+          )
+          Load_Balancer_Name = responsecf.get('StackResourceDetail').get('PhysicalResourceId')
 
-              response_cf_ds = cf_client.describe_stacks(
-                  StackName='$(stackPrefix)-$(buildId)'
-              )
-              Load_Balancer_URL = response_cf_ds.get('Stacks')[0].get('Outputs')[0].get('OutputValue')
+          response_cf_ds = cf_client.describe_stacks(
+              StackName='$(stackPrefix)-$(buildId)'
+          )
+          Load_Balancer_URL = response_cf_ds.get('Stacks')[0].get('Outputs')[0].get('OutputValue')
 
-              elb_client = boto3.client('elb',
-                  region_name='$(cfRegionName)',
-                  aws_access_key_id=THE_SECRET_KEY,
-                  aws_secret_access_key=THE_SECRET_ACCESS)
-              print('Waiting for the load balancer')    
+          elb_client = boto3.client('elb',
+              region_name='$(cfRegionName)',
+              aws_access_key_id=THE_SECRET_KEY,
+              aws_secret_access_key=THE_SECRET_ACCESS)
+          print('Waiting for the load balancer')    
+          print('...')
+          time.sleep(300)
+          state_elb = 'OutOfService'
+          while state_elb == 'OutOfService':
+              print('Checking if the load balancer is ready')    
               print('...')
-              time.sleep(300)
-              state_elb = 'OutOfService'
-              while state_elb == 'OutOfService':
-                  print('Checking if the load balancer is ready')    
-                  print('...')
-                  time.sleep(30)
-                  response_elb = elb_client.describe_instance_health(
-                  LoadBalancerName=Load_Balancer_Name)
-                  state_elb = response_elb.get('InstanceStates')[0].get('State')
-              print('Load balancer is ready (=')
-              r53_client = boto3.client('route53',
-                  aws_access_key_id=THE_SECRET_KEY,
-                  aws_secret_access_key=THE_SECRET_ACCESS)
-              response = r53_client.change_resource_record_sets(
-                  HostedZoneId='$(r53ZoneId)',
-                  ChangeBatch={
-                      'Comment': 'string',
-                      'Changes': [
-                          {
-                              'Action': 'UPSERT',
-                              'ResourceRecordSet': {
-                                  'Name': '$(r53Domain)',
-                                  'Type': 'CNAME',
-                                  'TTL': 60,
-                                  'ResourceRecords': [
-                                      {
-                                          'Value': Load_Balancer_URL
-                                      },
-                                  ]
-                              }
-                          },
-                      ]
-                  }
-              )  
-              print('The enviroment ($(r53Domain)) is done !!!')
-          except ClientError as e:
-              print(e)
-          else:
-              pass       
+              time.sleep(30)
+              response_elb = elb_client.describe_instance_health(
+              LoadBalancerName=Load_Balancer_Name)
+              state_elb = response_elb.get('InstanceStates')[0].get('State')
+          print('Load balancer is ready (=')
+          r53_client = boto3.client('route53',
+              aws_access_key_id=THE_SECRET_KEY,
+              aws_secret_access_key=THE_SECRET_ACCESS)
+          response = r53_client.change_resource_record_sets(
+              HostedZoneId='$(r53ZoneId)',
+              ChangeBatch={
+                  'Comment': 'string',
+                  'Changes': [
+                      {
+                          'Action': 'UPSERT',
+                          'ResourceRecordSet': {
+                              'Name': '$(r53Domain)',
+                              'Type': 'CNAME',
+                              'TTL': 60,
+                              'ResourceRecords': [
+                                  {
+                                      'Value': Load_Balancer_URL
+                                  },
+                              ]
+                          }
+                      },
+                  ]
+              }
+          )  
+          print('The enviroment ($(r53Domain)) is done !!!')      
     
