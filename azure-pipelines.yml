@@ -35,6 +35,9 @@ variables:
   # Orchestrator ECS service and cluster
   ecsCluster: 'ah_prod'
   ecsService: 'nodec'
+  # Route 53
+  r53ZoneId: 'Z0533257MVGVQZNFS7IW'
+  r53Domain: 'kinot3.com'
 
 stages:
 - stage: Build
@@ -164,6 +167,7 @@ stages:
                   StackName='$(stackPrefix)-$(buildId)',
                   LogicalResourceId='ElasticLoadBalancer'
               )
+              print(responsecf)
               Load_Balancer_Name = responsecf.get('StackResourceDetail').get('PhysicalResourceId')
 
               elb_client = boto3.client('elb',
@@ -181,7 +185,32 @@ stages:
                   response_elb = elb_client.describe_instance_health(
                   LoadBalancerName=Load_Balancer_Name)
                   state_elb = response_elb.get('InstanceStates')[0].get('State')
-              print('Load balancer is ready (=')    
+              print('Load balancer is ready (=')
+              r53_client = boto3.client('route53',
+                  aws_access_key_id=THE_SECRET_KEY,
+                  aws_secret_access_key=THE_SECRET_ACCESS)
+              response = r53_client.change_resource_record_sets(
+                  HostedZoneId='$(r53ZoneId)',
+                  ChangeBatch={
+                      'Comment': 'string',
+                      'Changes': [
+                          {
+                              'Action': 'UPSERT',
+                              'ResourceRecordSet': {
+                                  'Name': '$(r53Domain)',
+                                  'Type': 'CNAME',
+                                  'TTL': 60,
+                                  'ResourceRecords': [
+                                      {
+                                          'Value': Load_Balancer_Name
+                                      },
+                                  ]
+                              }
+                          },
+                      ]
+                  }
+              )  
+              print('The enviroment ($(r53Domain)) is done !!!')
           except ClientError as e:
               print(e)
           else:
