@@ -141,6 +141,7 @@ stages:
         script: |
           import boto3
           import os
+          import time
           from botocore.exceptions import ClientError
 
           try:
@@ -162,9 +163,14 @@ stages:
                   region_name='$(cfRegionName)',
                   aws_access_key_id=THE_SECRET_KEY,
                   aws_secret_access_key=THE_SECRET_ACCESS)
-              response_elb = elb_client.describe_instance_health(
+
+              time.sleep(300)
+              state_elb = 'OutOfService'
+              while state_elb == 'OutOfService':
+                  time.sleep(30)
+                  response_elb = elb_client.describe_instance_health(
                   LoadBalancerName=Load_Balancer_Name)
-              print(response_elb.get('InstanceStates')[0].get('State'))
+                  state_elb = response_elb.get('InstanceStates')[0].get('State')
           except ClientError as e:
               print(e)
           else:
