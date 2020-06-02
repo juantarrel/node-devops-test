@@ -50,10 +50,10 @@ stages:
         versionSpec: '3.x'             
     - task: CmdLine@2
       inputs:
-        script: 'sudo apt install python3-pip && echo $PATH && printenv | more'
+        script: 'sudo apt install python3-pip'
     - task: CmdLine@2
       inputs:
-        script: 'pip3 install boto3 awscli --user'   
+        script: 'pip3 install boto3'   
     - task: CmdLine@2
       inputs:
         script: 'echo $(SECRET_KEY)'  
@@ -62,16 +62,18 @@ stages:
         scriptSource: 'inline'
         script: |
           import boto3
+          import os
           from botocore.exceptions import ClientError
 
           try:
-
-              cf_client = boto3.client('cloudformation', region_name='$(cfRegionName)')
-              responsecf = cf_client.describe_stack_resource(
-                  StackName='$(stackPrefix)-$(buildId)',
-                  LogicalResourceId='ElasticLoadBalancer'
-              )
-              print(responsecf)
+              print('THE SECRET')
+              print(os.environ['SECRET_KEY'])
+              # cf_client = boto3.client('cloudformation', region_name='$(cfRegionName)')
+              # responsecf = cf_client.describe_stack_resource(
+              #     StackName='$(stackPrefix)-$(buildId)',
+              #     LogicalResourceId='ElasticLoadBalancer'
+              # )
+              # print(responsecf)
 
               # elb_client = boto3.client('elb')
               # responseelb = elb_client.LoadBalancerName(
