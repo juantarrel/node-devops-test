@@ -67,7 +67,7 @@ stages:
 
           try:
               print('THE SECRET')
-              print(os.environ.get('SECRET_KEY'))
+              print(os.environ.get('THE_SECRET_KEY'))
               # cf_client = boto3.client('cloudformation', region_name='$(cfRegionName)')
               # responsecf = cf_client.describe_stack_resource(
               #     StackName='$(stackPrefix)-$(buildId)',
