@@ -37,7 +37,7 @@ variables:
   ecsService: 'nodec'
   # Route 53
   r53ZoneId: 'Z0533257MVGVQZNFS7IW'
-  r53Domain: 'kinot3.com'
+  r53Domain: 'prod.kinot3.com'
 
 stages:
 - stage: Build
