@@ -106,7 +106,7 @@ stages:
                   StackName='$(stackPrefix)-$(buildId)',
                   LogicalResourceId='ElasticLoadBalancer'
               )
-              print(responsecf.get('StackResourceDetail').get('PhysicalResourceId'))
+              print(responsecf)
 
               # elb_client = boto3.client('elb')
               # responseelb = elb_client.LoadBalancerName(
