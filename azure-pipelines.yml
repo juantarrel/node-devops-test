@@ -116,4 +116,12 @@ stages:
         command: 'build'
         Dockerfile: 'Dockerfile'
         arguments: '$(dockerArgs)'
+    - task: ECRPushImage@1
+      inputs:
+        awsCredentials: '$(theAwsCredentials)'
+        regionName: '$(cfRegionName)'
+        imageSource: 'imageid'
+        sourceImageId: '$(dockerBase):$(buildId)'
+        repositoryName: '$(ecrRepositoryName)'
+        pushTag: '$(buildId)'        
     
