@@ -68,7 +68,7 @@ stages:
         templateParametersSource: 'inline'
         templateParameters: |
           -
-            ParameterKey: 'AZs---'
+            ParameterKey: 'AZs'
             ParameterValue: '$(cfAZs)'
           -
             ParameterKey: 'InstanceCount'
