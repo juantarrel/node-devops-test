@@ -71,7 +71,7 @@ stages:
               THE_SECRET_KEY = os.environ.get('THE_SECRET_KEY')
               THE_SECRET_ACCESS = os.environ.get('THE_SECRET_ACCESS')
               cf_client = boto3.client('cloudformation',
-                  region_name='$(cfRegionName)'
+                  region_name='$(cfRegionName)',
                   aws_access_key_id=THE_SECRET_KEY,
                   aws_secret_access_key=THE_SECRET_ACCESS)
               responsecf = cf_client.describe_stack_resource(
