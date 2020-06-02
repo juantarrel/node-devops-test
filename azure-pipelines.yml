@@ -7,7 +7,6 @@ resources:
 variables:
   envAH: 'prod'
   buildId: '$(Build.BuildId)'
-  theAwsCredentials: 'Aws ambryhill test'
   stackPrefix: 'elb-ah-prod'
   # S3 for CloudFormation template
   s3Bucket: 'ambryhill-cf'
@@ -50,10 +49,18 @@ stages:
         versionSpec: '3.x'             
     - task: CmdLine@2
       inputs:
-        script: 'sudo apt install python3-pip && pip3 install boto3'
+        script: 'sudo apt install python3-pip'
+    - task: CmdLine@2
+      inputs:
+        script: 'pip3 install boto3'           
+    - task: PythonScript@0
+      inputs:
+        scriptSource: 'inline'
+        script: 'import boto3'
+        
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
-        awsCredentials: '$(theAwsCredentials)'
+        awsCredentials: 'Aws ambryhill test'
         regionName: '$(cfRegionName)'
         stackName: '$(stackPrefix)-$(buildId)'
         templateSource: 's3'
@@ -79,37 +86,6 @@ stages:
           -
             ParameterKey: 'InstanceType'
             ParameterValue: '$(cfInstanceType)'
-    - task: PythonScript@0
-      inputs:
-        scriptSource: 'inline'
-        script: |
-          import boto3
-          import os
-          from botocore.exceptions import ClientError
-
-          try:
-              THE_SECRET_KEY = os.environ.get('THE_SECRET_KEY')
-              THE_SECRET_ACCESS = os.environ.get('THE_SECRET_ACCESS')
-
-              cf_client = boto3.client('cloudformation',
-                  region_name='$(cfRegionName)',
-                  aws_access_key_id=THE_SECRET_KEY,
-                  aws_secret_access_key=THE_SECRET_ACCESS)
-              
-              responsecf = cf_client.describe_stack_resource(
-                  StackName='$(stackPrefix)-$(buildId)',
-                  LogicalResourceId='ElasticLoadBalancer'
-              )
-              print(responsecf)
-
-              # elb_client = boto3.client('elb')
-              # responseelb = elb_client.LoadBalancerName(
-              #     LoadBalancerName=cluster_name
-              # )
-          except ClientError as e:
-              print(e)
-          else:
-              pass                
     - task: Docker@2
       inputs:
         repository: '$(dockerBase)'
@@ -132,7 +108,7 @@ stages:
         arguments: ''
         scriptType: 'inline'
         inlineScript: |
-          aws ec register-task-definition --family $(ecsTask) --container-definitions "
+          aws ecs register-task-definition --family $(ecsTask) --container-definitions "
               [
                  {
                     \"name\":\"$(ecs1Name)\",
