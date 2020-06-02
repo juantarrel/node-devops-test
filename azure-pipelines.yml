@@ -56,38 +56,7 @@ stages:
         script: 'pip3 install boto3'   
     - task: CmdLine@2
       inputs:
-        script: 'printenv | more'  
-    - task: PythonScript@0
-      inputs:
-        scriptSource: 'inline'
-        script: |
-          import boto3
-          import os
-          from botocore.exceptions import ClientError
-
-          try:
-              print('THE_SECRET_ACCESS')
-              print(os.environ.get('THE_SECRET_ACCESS'))
-              THE_SECRET_KEY = os.environ.get('THE_SECRET_KEY')
-              THE_SECRET_ACCESS = os.environ.get('THE_SECRET_ACCESS')
-              cf_client = boto3.client('cloudformation',
-                  region_name='$(cfRegionName)',
-                  aws_access_key_id=THE_SECRET_KEY,
-                  aws_secret_access_key=THE_SECRET_ACCESS)
-              responsecf = cf_client.describe_stack_resource(
-                  StackName='$(stackPrefix)-$(buildId)',
-                  LogicalResourceId='ElasticLoadBalancer'
-              )
-              print(responsecf)
-
-              # elb_client = boto3.client('elb')
-              # responseelb = elb_client.LoadBalancerName(
-              #     LoadBalancerName=cluster_name
-              # )
-          except ClientError as e:
-              print(e)
-          else:
-              pass         
+        script: 'printenv | more'     
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: '$(theAwsCredentials)'
@@ -118,15 +87,19 @@ stages:
             ParameterValue: '$(cfInstanceType)'
     - task: PythonScript@0
       inputs:
-        awsCredentials: 'aws_tokens'
         scriptSource: 'inline'
         script: |
           import boto3
+          import os
           from botocore.exceptions import ClientError
 
           try:
-
-              cf_client = boto3.client('cloudformation', region_name='$(cfRegionName)')
+              THE_SECRET_KEY = os.environ.get('THE_SECRET_KEY')
+              THE_SECRET_ACCESS = os.environ.get('THE_SECRET_ACCESS')
+              cf_client = boto3.client('cloudformation',
+                  region_name='$(cfRegionName)',
+                  aws_access_key_id=THE_SECRET_KEY,
+                  aws_secret_access_key=THE_SECRET_ACCESS)
               responsecf = cf_client.describe_stack_resource(
                   StackName='$(stackPrefix)-$(buildId)',
                   LogicalResourceId='ElasticLoadBalancer'
@@ -140,7 +113,7 @@ stages:
           except ClientError as e:
               print(e)
           else:
-              pass            
+              pass                
     - task: Docker@2
       inputs:
         repository: '$(dockerBase)'
