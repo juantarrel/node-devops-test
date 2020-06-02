@@ -167,13 +167,11 @@ stages:
                   StackName='$(stackPrefix)-$(buildId)',
                   LogicalResourceId='ElasticLoadBalancer'
               )
-              print(responsecf)
               Load_Balancer_Name = responsecf.get('StackResourceDetail').get('PhysicalResourceId')
 
               response_cf_ds = cf_client.describe_stacks(
                   StackName='$(stackPrefix)-$(buildId)'
               )
-              print(response_cf_ds)
               Load_Balancer_URL = response_cf_ds.get('Stacks')[0].get('Outputs')[0].get('OutputValue')
 
               elb_client = boto3.client('elb',
