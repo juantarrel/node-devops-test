@@ -100,8 +100,7 @@ stages:
                   StackName='$(stackPrefix)-$(buildId)',
                   LogicalResourceId='ElasticLoadBalancer'
               )
-              print(responsecf.get('StackResourceDetail').get('PhysicalResourceId'))
-
+              os.putenv("Load_Balancer_Name", responsecf.get('StackResourceDetail').get('PhysicalResourceId'))
               # elb_client = boto3.client('elb')
               # responseelb = elb_client.LoadBalancerName(
               #     LoadBalancerName=cluster_name
@@ -165,5 +164,25 @@ stages:
           TASK_DEFINITION=`cat Prod-$(buildId).txt`
           echo $TASK_DEFINITION
           aws ecs update-service --cluster $(ecsCluster) --service $(ecsService) --task-definition $(ecsTask):`cat Prod-$(buildId).txt`
-        failOnStandardError: true           
+        failOnStandardError: true     
+    - task: PythonScript@0
+      inputs:
+        scriptSource: 'inline'
+        script: |
+          import boto3
+          import os
+          from botocore.exceptions import ClientError
+
+          try:
+              Load_Balancer_Name = os.environ.get('Load_Balancer_Name')
+
+              elb_client = boto3.client('elb')
+              responseelb = elb_client.LoadBalancerName(
+                  LoadBalancerName=Load_Balancer_Name
+              )
+              print(responseelb)
+          except ClientError as e:
+              print(e)
+          else:
+              pass       
     
