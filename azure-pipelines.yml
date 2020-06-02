@@ -158,7 +158,7 @@ stages:
         arguments: ''
         scriptType: 'inline'
         inlineScript: |
-          aws ecs register-task-definition --family $(ecsTask) --container-definitions "
+          awss ecs register-task-definition --family $(ecsTask) --container-definitions "
               [
                  {
                     \"name\":\"$(ecs1Name)\",
