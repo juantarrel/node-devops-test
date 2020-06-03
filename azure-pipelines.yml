@@ -9,6 +9,7 @@ variables:
   buildId: '$(Build.BuildId)'
   theAwsCredentials: 'aws'
   stackPrefix: 'elb-ah-prod'
+  saveOnlyLastECR: '3'
   # S3 for CloudFormation template
   s3Bucket: 'ambryhill-cf'
   s3BucketObjKey: 'prod-2020-05-31.json'
@@ -212,6 +213,26 @@ stages:
                       },
                   ]
               }
-          )  
+          )
+          ###
+          ecr_client = boto3.client('ecr',
+              aws_access_key_id=THE_SECRET_KEY,
+              aws_secret_access_key=THE_SECRET_ACCESS)
+          response_ecr = ecr_client.list_images(
+              repositoryName='prod-ambryhill-app'
+          )
+          list_ecrs = response_ecr.get('imageIds')
+          list_to_delete = []
+          only_get = int($(saveOnlyLastECR))
+          if len(list_ecrs) > only_get:
+              for tag in sorted(response.get('imageIds'), key=itemgetter('imageTag'))[: len(list_ecrs) - only_get]:
+                  list_to_delete.append(tag)
+                  print(tag.get('imageDigest'))
+                  pass
+              ecr_client.batch_delete_image(
+                  repositoryName='prod-ambryhill-app',
+                  imageIds=list_to_delete
+              )
+          ###
           print('The enviroment ($(r53Domain)) is done !!!')      
     
