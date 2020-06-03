@@ -221,18 +221,18 @@ stages:
               aws_access_key_id=THE_SECRET_KEY,
               aws_secret_access_key=THE_SECRET_ACCESS)
           response_ecr = ecr_client.list_images(
-              repositoryName='prod-ambryhill-app'
+              repositoryName='$(ecrRepositoryName)'
           )
           list_ecrs = response_ecr.get('imageIds')
           list_to_delete = []
           only_get = int($(saveOnlyLastECR))
           if len(list_ecrs) > only_get:
-              for tag in sorted(response.get('imageIds'), key=itemgetter('imageTag'))[: len(list_ecrs) - only_get]:
+              for tag in sorted(list_ecrs, key=itemgetter('imageTag'))[: len(list_ecrs) - only_get]:
                   list_to_delete.append(tag)
                   print(tag.get('imageDigest'))
                   pass
               ecr_client.batch_delete_image(
-                  repositoryName='prod-ambryhill-app',
+                  repositoryName='$(ecrRepositoryName)',
                   imageIds=list_to_delete
               )
           ###
