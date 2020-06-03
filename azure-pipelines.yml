@@ -153,6 +153,7 @@ stages:
           import boto3
           import os
           import time
+          from operator import itemgetter
           from botocore.exceptions import ClientError
 
           THE_SECRET_KEY = os.environ.get('THE_SECRET_KEY')
