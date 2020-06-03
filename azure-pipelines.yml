@@ -230,7 +230,6 @@ stages:
               for tag in sorted(list_ecrs, key=itemgetter('imageTag'))[: len(list_ecrs) - only_get]:
                   list_to_delete.append(tag)
                   print(tag.get('imageDigest'))
-                  pass
               ecr_client.batch_delete_image(
                   repositoryName='$(ecrRepositoryName)',
                   imageIds=list_to_delete
