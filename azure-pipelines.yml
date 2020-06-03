@@ -216,6 +216,7 @@ stages:
           )
           ###
           ecr_client = boto3.client('ecr',
+              region_name='$(cfRegionName)',
               aws_access_key_id=THE_SECRET_KEY,
               aws_secret_access_key=THE_SECRET_ACCESS)
           response_ecr = ecr_client.list_images(
